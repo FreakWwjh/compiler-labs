@@ -1,26 +1,40 @@
 CXX = g++
+CC = gcc
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
+CFLAGS = -std=c99 -O2 -Wall
 
-TARGET = scanner
-SRCS = scanner.cpp
-OBJS = $(SRCS:.cpp=.o)
+TARGET_CPP = scanner
+TARGET_C = scanner_c
 
-.PHONY: all clean test
+.PHONY: all clean test test-c
 
-all: $(TARGET)
+all: $(TARGET_CPP) $(TARGET_C)
 
-$(TARGET): $(SRCS)
+$(TARGET_CPP): scanner.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-clean:
-	rm -f $(TARGET) *.o
+$(TARGET_C): scanner.c
+	$(CC) $(CFLAGS) -o $@ $^
 
-test: $(TARGET)
-	@echo "=== Mode 1 Test ==="
-	@echo -e '1\n5\nid if 485 841.6541 www' | ./$(TARGET)
+clean:
+	rm -f $(TARGET_CPP) $(TARGET_C) *.o
+
+test: $(TARGET_CPP)
+	@echo "=== C++ Mode 1 Test ==="
+	@echo -e '1\n5\nid if 485 841.6541 www' | ./$(TARGET_CPP)
 	@echo ""
-	@echo "=== Mode 2 Test ==="
-	@echo -e '2\nwhile(true) {int a=0;}' | ./$(TARGET)
+	@echo "=== C++ Mode 2 Test ==="
+	@echo -e '2\nwhile(true) {int a=0;}' | ./$(TARGET_CPP)
 	@echo ""
-	@echo "=== File Mode Test ==="
-	./$(TARGET) test.src
+	@echo "=== C++ File Mode Test ==="
+	./$(TARGET_CPP) test.src
+
+test-c: $(TARGET_C)
+	@echo "=== C Mode 1 Test ==="
+	@echo -e '1\n5\nid if 485 841.6541 www' | ./$(TARGET_C)
+	@echo ""
+	@echo "=== C Mode 2 Test ==="
+	@echo -e '2\nwhile(true) {int a=0;}' | ./$(TARGET_C)
+	@echo ""
+	@echo "=== C File Mode Test ==="
+	./$(TARGET_C) test.src

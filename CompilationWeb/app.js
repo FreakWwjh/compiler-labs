@@ -200,3 +200,31 @@ document.querySelectorAll('.nav-item').forEach(item => {
     document.getElementById('panel-' + exp).classList.add('active');
   });
 });
+
+// ================== Experiment 2: Scanner ==================
+
+document.getElementById('btnScan').addEventListener('click', () => {
+  const source = document.getElementById('scannerSource').value;
+  const msgEl = document.getElementById('scanMsg');
+  if (!source.trim()) {
+    showMessage(msgEl, '⚠️ 请输入源代码。', 'warning');
+    return;
+  }
+  const lexer = new Lexer(source);
+  const tokens = lexer.scanAll();
+  renderTokens(tokens, 'tokenResult');
+  renderHighlightedSource(source, tokens, 'sourcePreview');
+  showMessage(msgEl, `✅ 词法分析完成，共识别 ${tokens.filter(t => t.type !== 'EOF').length} 个 Token。`, 'success');
+});
+
+document.getElementById('scannerFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    document.getElementById('scannerSource').value = evt.target.result;
+    document.getElementById('scanMsg').style.display = 'none';
+    showMessage(document.getElementById('scanMsg'), `✅ 文件 "${file.name}" 已加载，点击开始词法分析。`, 'success');
+  };
+  reader.readAsText(file);
+});

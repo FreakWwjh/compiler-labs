@@ -2,7 +2,9 @@
 
 ## 实验目标
 
-实现一个基于 C++ 的词法分析扫描程序（Scanner），支持对自定义程序语言的源代码进行线性扫描，识别并输出 Token 流。
+实现词法分析扫描程序（Scanner），支持对自定义程序语言的源代码进行线性扫描，识别并输出 Token 流。
+
+提供 **C++** 与 **C** 两种命令行实现，并与实验一 Web 可视化平台联动。
 
 ## 支持的词法单元
 
@@ -89,23 +91,62 @@ $ ./scanner test.src > tokens.txt
 
 ```bash
 cd exp2
-make          # 编译生成 scanner
-make test     # 运行内置测试用例
-make clean    # 清理编译产物
+make           # 编译 C++ 版 (scanner) 和 C 版 (scanner_c)
+make test      # 测试 C++ 版本
+make test-c    # 测试 C 版本
+make clean     # 清理编译产物
 ```
+
+### C++ 版本
+
+```bash
+make scanner
+./scanner test.src          # 文件扫描模式
+./scanner                   # 交互模式（支持模式 1 / 模式 2）
+```
+
+### C 版本
+
+```bash
+make scanner_c
+./scanner_c test.src
+./scanner_c
+```
+
+> 两种实现功能完全一致，C 版本更贴近底层字符处理，便于理解词法分析的基本原理。
 
 ## 文件说明
 
 | 文件 | 说明 |
 |------|------|
 | `scanner.cpp` | 词法分析器主程序（C++17） |
-| `Makefile` | 编译脚本 |
+| `scanner.c` | 词法分析器主程序（C99） |
+| `Makefile` | 编译脚本（支持双版本） |
 | `test.src` | 示例源程序（函数声明片段） |
 | `test_float.src` | 浮点数识别测试 |
 | `test_op.src` | 运算符与边界测试 |
 
+## Web 可视化（选做）
+
+实验一已搭建的 `CompilationWeb/` 可视化平台已扩展支持实验二：
+
+- 在线输入源代码，实时进行词法分析
+- Token 流以表格形式展示（类型、值、位置），带颜色区分
+- 支持上传 `.src`/`.c`/`.txt` 源文件
+- 源码预览区域带语法高亮
+
+打开方式：
+
+```bash
+cd CompilationWeb
+# 直接用浏览器打开 index.html
+# 或启动本地服务器
+python3 -m http.server 8080
+```
+
 ## 环境信息
 
 - **OS**: openEuler 22.03 LTS (aarch64)
-- **Compiler**: g++ 10.3.1 (支持 C++17)
+- **Compiler**: g++ 10.3.1 / gcc 10.3.1
 - **构建工具**: GNU Make
+- **Web**: 现代浏览器（Chrome / Firefox / Edge）
