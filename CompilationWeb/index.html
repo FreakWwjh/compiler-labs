@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编译原理实验演示平台</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="code-icon">&lt;/&gt;</div>
+        <div>
+          <div class="logo-title">编译原理</div>
+          <div class="logo-subtitle">实验演示平台</div>
+        </div>
+      </div>
+      <nav>
+        <div class="nav-item active" data-exp="exp1">
+          <span>⚡</span>
+          <span>实验一-DFA</span>
+        </div>
+        <div class="nav-item" data-exp="exp2">
+          <span>🔍</span>
+          <span>实验二-LL(1) (待开发)</span>
+        </div>
+        <div class="nav-item" data-exp="exp3">
+          <span>🌲</span>
+          <span>实验三-LR(1) (待开发)</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Experiment 1 Panel -->
+      <div id="panel-exp1" class="panel active">
+        <div class="page-header">
+          <h1>实验一：DFA 模拟与可视化</h1>
+          <p class="subtitle">通过输入五元组定义（或上传文件），模拟DFA的运行，验证字符串，并生成可视化的状态转移图。</p>
+        </div>
+
+        <div class="cards-row">
+          <!-- DFA Definition -->
+          <div class="card definition-card">
+            <div class="card-header">
+              <h3>☑ DFA 定义</h3>
+              <label class="upload-link">
+                📎 上传文件
+                <input type="file" id="fileInput" accept=".dfa,.txt,.json" hidden>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Alphabet</label>
+              <input type="text" id="alphabet" placeholder="请输入字母表，空格分隔，如：a b" value="a b">
+            </div>
+            <div class="form-group">
+              <label>States</label>
+              <input type="text" id="states" placeholder="请输入状态集，空格分隔，如：q0 q1 q2" value="q0 q1 q2">
+            </div>
+            <div class="form-group">
+              <label>Start</label>
+              <input type="text" id="start" placeholder="请输入开始状态，如：q0" value="q0">
+            </div>
+            <div class="form-group">
+              <label>Accept</label>
+              <input type="text" id="accept" placeholder="请输入接受状态集，空格分隔，如：q2" value="q2">
+            </div>
+            <div class="form-group">
+              <label>Transitions <span class="hint">每行一条（状态 字符 下一状态）</span></label>
+              <textarea id="transitions" placeholder="q0 a q1&#10;q0 b q0&#10;q1 a q0&#10;q1 b q2&#10;q2 a q2&#10;q2 b q2">q0 a q1
+q0 b q0
+q1 a q0
+q1 b q2
+q2 a q2
+q2 b q2</textarea>
+            </div>
+            <button id="btnParse" class="btn-primary">解析并生成图</button>
+            <div id="parseMsg" class="message"></div>
+          </div>
+
+          <!-- Visualization -->
+          <div class="card viz-card">
+            <div class="card-header">
+              <h3>🚀 状态转移图（可视化）</h3>
+            </div>
+            <div id="mynetwork" class="network-container">
+              <div class="network-placeholder">在左侧解析 DFA 后，状态图显示区域</div>
+            </div>
+            <div class="legend">
+              <span class="legend-item"><span class="dot start-dot"></span> 开始状态</span>
+              <span class="legend-item"><span class="dot accept-dot"></span> 接受状态</span>
+              <span class="legend-item"><span class="dot normal-dot"></span> 普通状态</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Function Test -->
+        <div class="card test-card">
+          <div class="card-header">
+            <h3>🧪 功能测试</h3>
+          </div>
+          <div class="test-row">
+            <div class="test-section">
+              <label>生成长度 &lt;= N 的接受字符串</label>
+              <div class="input-group">
+                <input type="number" id="genN" min="0" max="10" value="3" class="small-input">
+                <button id="btnGen" class="btn-secondary">生成</button>
+              </div>
+              <div id="genResult" class="result-box"></div>
+            </div>
+            <div class="test-section">
+              <label>测试字符串是否被接受</label>
+              <div class="input-group">
+                <input type="text" id="testString" placeholder="输入测试字符串" value="aa">
+                <button id="btnTest" class="btn-secondary">验证</button>
+              </div>
+              <div id="testResult" class="result-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Experiment 2 Panel -->
+      <div id="panel-exp2" class="panel">
+        <div class="placeholder-panel">
+          <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+          <h2>实验二：LL(1) 语法分析</h2>
+          <p>该模块正在开发中，敬请期待……</p>
+        </div>
+      </div>
+
+      <!-- Experiment 3 Panel -->
+      <div id="panel-exp3" class="panel">
+        <div class="placeholder-panel">
+          <div style="font-size: 48px; margin-bottom: 16px;">🌲</div>
+          <h2>实验三：LR(1) 语法分析</h2>
+          <p>该模块正在开发中，敬请期待……</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="dfa.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
