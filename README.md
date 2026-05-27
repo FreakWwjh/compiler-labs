@@ -20,8 +20,12 @@ exp1/                    # 实验一：C++ 命令行 DFA 模拟器（openEuler �
 └── ...
 
 exp2/                    # 实验二：词法分析器 Scanner
-├── scanner.cpp          # 词法分析器主程序（C++17）
-├── Makefile             # 编译脚本
+├── scanner.cpp          # 词法分析器主程序（C++17，直接编码）
+├── scanner.c            # 词法分析器主程序（C99，直接编码）
+├── scanner_dfa.cpp      # DFA 驱动版 Scanner（读取实验一 JSON 配置）
+├── dfa_lex.json         # 扩展后的 DFA 配置文件（覆盖主文法）
+├── gen_dfa.py           # 生成 dfa_lex.json 的脚本
+├── Makefile             # 编译脚本（支持 scanner / scanner_c / scanner_dfa）
 ├── test.src             # 示例源程序
 └── ...
 
@@ -62,9 +66,17 @@ make clean && make
 ```bash
 cd exp2
 make
-./scanner test.src          # 文件扫描模式
+./scanner test.src          # 文件扫描模式（直接编码 C++ 版）
 ./scanner                   # 交互模式（支持模式 1 / 模式 2）
 ./scanner test.src > tokens.txt   # 输出重定向，供后续语法分析使用
+```
+
+**实验二（DFA 驱动版，体现实验一与实验二关联）**
+
+```bash
+cd exp2
+make scanner_dfa
+./scanner_dfa dfa_lex.json test.src   # 读取 DFA 配置文件进行词法分析
 ```
 
 ## ✨ 实验功能特性
@@ -95,6 +107,7 @@ make
 | Token 颜色区分 | - | ✅ | 关键字、标识符、数字、运算符、界符分色显示 |
 | 源码预览高亮 | - | ✅ | 源码预览区域 |
 | C + C++ 双实现 | ✅ | - | 同一 Makefile 支持 `scanner` 与 `scanner_c` |
+| **DFA 配置文件驱动** | ✅ | - | `scanner_dfa` 读取实验一格式的 JSON 运行，体现实验关联性 |
 
 ## 🖼️ 效果预览
 

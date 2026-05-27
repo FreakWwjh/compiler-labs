@@ -115,13 +115,33 @@ make scanner_c
 
 > 两种实现功能完全一致，C 版本更贴近底层字符处理，便于理解词法分析的基本原理。
 
+### DFA 驱动版本（体现实验一与实验二的关联）
+
+这是实验回顾中强调的**核心要求**：实验二的 Scanner **读取实验一格式的 DFA 配置文件**作为词法规则，运行时完全依据状态转移表进行最长匹配词法分析。
+
+```bash
+make scanner_dfa
+./scanner_dfa dfa_lex.json test.src       # 文件模式
+./scanner_dfa dfa_lex.json                # 交互模式（从 stdin 读源码）
+```
+
+**`dfa_lex.json`** 是一个扩展后的 DFA 配置文件（与实验一 JSON 格式兼容），覆盖了主文法的全部字符：
+- 标识符、整数、浮点数（含科学计数法）
+- 关系运算符（`<=`, `==`, `>=`, `!=`）
+- 四则运算与界符
+
+通过修改该 JSON 即可扩展或修改词法规则，无需重新编译 Scanner。
+
 ## 文件说明
 
 | 文件 | 说明 |
 |------|------|
-| `scanner.cpp` | 词法分析器主程序（C++17） |
-| `scanner.c` | 词法分析器主程序（C99） |
-| `Makefile` | 编译脚本（支持双版本） |
+| `scanner.cpp` | 词法分析器主程序（C++17，直接编码） |
+| `scanner.c` | 词法分析器主程序（C99，直接编码） |
+| `scanner_dfa.cpp` | **DFA 驱动版 Scanner**（读取 JSON 配置文件） |
+| `dfa_lex.json` | 扩展后的 DFA 配置文件（实验一格式兼容） |
+| `gen_dfa.py` | 生成 `dfa_lex.json` 的脚本（便于调整 DFA） |
+| `Makefile` | 编译脚本（支持 scanner / scanner_c / scanner_dfa） |
 | `test.src` | 示例源程序（函数声明片段） |
 | `test_float.src` | 浮点数识别测试 |
 | `test_op.src` | 运算符与边界测试 |

@@ -5,10 +5,11 @@ CFLAGS = -std=c99 -O2 -Wall
 
 TARGET_CPP = scanner
 TARGET_C = scanner_c
+TARGET_DFA = scanner_dfa
 
-.PHONY: all clean test test-c
+.PHONY: all clean test test-c test-dfa
 
-all: $(TARGET_CPP) $(TARGET_C)
+all: $(TARGET_CPP) $(TARGET_C) $(TARGET_DFA)
 
 $(TARGET_CPP): scanner.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^
@@ -16,8 +17,11 @@ $(TARGET_CPP): scanner.cpp
 $(TARGET_C): scanner.c
 	$(CC) $(CFLAGS) -o $@ $^
 
+$(TARGET_DFA): scanner_dfa.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
 clean:
-	rm -f $(TARGET_CPP) $(TARGET_C) *.o
+	rm -f $(TARGET_CPP) $(TARGET_C) $(TARGET_DFA) *.o
 
 test: $(TARGET_CPP)
 	@echo "=== C++ Mode 1 Test ==="
@@ -38,3 +42,11 @@ test-c: $(TARGET_C)
 	@echo ""
 	@echo "=== C File Mode Test ==="
 	./$(TARGET_C) test.src
+
+test-dfa: $(TARGET_DFA)
+	@echo "=== DFA-driven Scanner Test ==="
+	./$(TARGET_DFA) dfa_lex.json test.src
+	@echo ""
+	./$(TARGET_DFA) dfa_lex.json test_float.src
+	@echo ""
+	./$(TARGET_DFA) dfa_lex.json test_op.src
