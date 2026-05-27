@@ -2,6 +2,7 @@
 *.o
 *.out
 dfa_sim
+scanner
 
 # IDE
 .vscode/

@@ -1,0 +1,4 @@
+float x = 123.45;
+float y = .66;
+float z = 1e-3;
+float w = 9.8E7;

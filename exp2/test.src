@@ -1,0 +1,4 @@
+void qsort(int low, int high)
+{
+void swap(int i, int j)
+{
