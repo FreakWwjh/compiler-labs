@@ -1,0 +1,10 @@
+INT int
+ID a
+SEMI ;
+FLOAT float
+ID b
+SEMI ;
+ID a
+ASG =
+FLOAT_NUM 3.5
+SEMI ;

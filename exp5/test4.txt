@@ -1,0 +1,13 @@
+INT int
+ID x
+SEMI ;
+ID x
+ASG =
+LPAR (
+INT_NUM 1
+ADD +
+INT_NUM 2
+RPAR )
+MUL *
+INT_NUM 3
+SEMI ;

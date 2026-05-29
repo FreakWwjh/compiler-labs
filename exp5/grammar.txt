@@ -1,0 +1,10 @@
+Prog -> DeclList
+DeclList -> DeclList Decl | Decl
+Decl -> VarDecl | Assign | Print
+VarDecl -> Type ID SEMI
+Type -> INT | FLOAT
+Assign -> ID ASG Expr SEMI
+Print -> PRINT Expr SEMI
+Expr -> Expr ADD Term | Term
+Term -> Term MUL Fact | Fact
+Fact -> ID | INT_NUM | FLOAT_NUM | LPAR Expr RPAR
