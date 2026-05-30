@@ -111,9 +111,23 @@ Fact     → ID | INT_NUM | FLOAT_NUM | LPAR Expr RPAR
 
 **产生式共 20 条**（含自动添加的增广产生式 `S' → Prog`）。
 
-## 七、测试用例
+## 七、测试用例（与文档语义规则对照）
 
-### Test 1：正确程序
+实验说明中给出的核心语义规则：
+
+```
+S → id = E          S.code = E.code ‖ gen(id '=' E.addr)
+E → E₁ + E₂         E.addr = new Temp(); E.code = E₁.code ‖ E₂.code ‖ gen(E.addr ':=' E₁.addr '+' E₂.addr)
+E → E₁ * E₂         同上，运算符换 '*'
+E → (E₁)            E.addr = E₁.addr; E.code = E₁.code
+E → id              E.addr = top.get(id); E.code = ""
+```
+
+以下 4 个测试用例**完全覆盖**上述语义规则：
+
+---
+
+### Test 1：正确程序（覆盖声明 + 赋值 + print）
 
 **Token 流：**
 ```
@@ -122,6 +136,12 @@ Fact     → ID | INT_NUM | FLOAT_NUM | LPAR Expr RPAR
 ```
 
 **对应代码：** `int x; x = 5; print x;`
+
+**覆盖的语义规则：**
+- `VarDecl → Type ID SEMI` — 符号表插入
+- `Assign → ID ASG Expr SEMI` — 赋值语句语义动作
+- `Print → PRINT Expr SEMI` — print 语句
+- `Fact → INT_NUM` — 数字字面量
 
 **预期输出：**
 - ✅ 无语义错误
@@ -132,23 +152,46 @@ Fact     → ID | INT_NUM | FLOAT_NUM | LPAR Expr RPAR
   print x
   ```
 
-### Test 2：类型不匹配
+---
+
+### Test 2：类型不匹配（覆盖类型检查）
 
 **对应代码：** `int a; float b; a = 3.5;`
+
+**覆盖的语义规则：**
+- `VarDecl → Type ID SEMI` — `int a;` / `float b;`
+- `Assign → ID ASG Expr SEMI` — 赋值时检查类型一致性
+- `Fact → FLOAT_NUM` — 浮点数字面量
 
 **预期输出：**
 - ❌ `Type mismatch in assignment to 'a': expected int, got float`
 
-### Test 3：未声明变量
+---
+
+### Test 3：未声明变量（覆盖错误检测）
 
 **对应代码：** `y = 10;`
 
+**覆盖的语义规则：**
+- `Assign → ID ASG Expr SEMI` — 赋值前查符号表
+- `Fact → INT_NUM` — 数字字面量
+
 **预期输出：**
 - ❌ `Variable 'y' not declared`
+- 符号表：`(empty)`（因 `y` 未插入成功）
 
-### Test 4：复杂表达式
+---
+
+### Test 4：复杂表达式（覆盖临时变量生成）
 
 **对应代码：** `int a; int b; int c; c = a + b * 2;`
+
+**覆盖的语义规则：**
+- `Expr → Expr ADD Term` — `a + (...)`
+- `Term → Term MUL Fact` — `b * 2`
+- `Fact → ID` — 变量引用 `a`, `b`
+- `Fact → INT_NUM` — 数字 `2`
+- 临时变量 `newTemp()` 生成：`t1`, `t2`
 
 **预期输出：**
 - ✅ 无语义错误
