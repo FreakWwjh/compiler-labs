@@ -1,18 +1,16 @@
+# 实验五文法：声明、赋值、print、表达式
+# 分号为语句结束符（实验五简化版）
+
 Prog -> DeclList
-DeclList -> DeclList SEMI Decl | Decl | ε
-Decl -> FunDecl | Stmt
-FunDecl -> FunDeclHead LBR StmtList RBR
-FunDeclHead -> Type ID LPAR RPAR
-Type -> INT | FLOAT | VOID
-StmtList -> StmtList SEMI Stmt | Stmt | ε
-Stmt -> VarDecl | Assign | Print | Return | IfStmt | WhileStmt | FunCallStmt
-VarDecl -> Type ID | Type ID ASG Expr
-Assign -> ID ASG Expr
-Print -> PRINT Expr
-Return -> RETURN Expr | RETURN
-IfStmt -> IF LPAR Expr RPAR LBR StmtList RBR
-WhileStmt -> WHILE LPAR Expr RPAR LBR StmtList RBR
-FunCallStmt -> ID LPAR RPAR
-Expr -> Expr ADD Term | Expr SUB Term | Expr LT Term | Expr LE Term | Expr EQ Term | Term
+DeclList -> DeclList Decl | Decl
+Decl -> VarDecl | Assign | Print
+
+VarDecl -> Type ID SEMI
+Type -> INT | FLOAT
+
+Assign -> ID ASG Expr SEMI
+Print -> PRINT Expr SEMI
+
+Expr -> Expr ADD Term | Term
 Term -> Term MUL Fact | Fact
-Fact -> ID | INT_NUM | FLOAT_NUM | LPAR Expr RPAR | ID LPAR RPAR
+Fact -> ID | INT_NUM | FLOAT_NUM | LPAR Expr RPAR
