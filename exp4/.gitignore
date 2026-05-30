@@ -1,0 +1,9 @@
+# 编译产物
+slr1
+*.o
+
+# Flex/Bison 生成文件
+optional_flex_bison/calc
+optional_flex_bison/calc.tab.c
+optional_flex_bison/calc.tab.h
+optional_flex_bison/lex.yy.c
