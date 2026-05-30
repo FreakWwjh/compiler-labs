@@ -29,7 +29,30 @@ exp2/                    # 实验二：词法分析器 Scanner
 ├── test.src             # 示例源程序
 └── ...
 
+exp3/                    # 实验三：LR(0) 项目集规范族生成器
+├── lr0.cpp              # LR(0) 规范族自动生成器（Closure + Goto + BFS）
+├── Makefile
+├── grammar_expr.txt     # 标准表达式文法（存在 LR(0) 冲突）
+├── grammar_ext.txt      # 扩展表达式文法（含一元负号）
+├── grammar_lr0.txt      # 简单 LR(0) 文法（无冲突）
+└── ...
+
+exp4/                    # 实验四：SLR(1) 分析表生成器
+├── slr1.cpp             # SLR(1) 分析表生成器（FIRST/FOLLOW + ACTION/GOTO）
+├── Makefile
+├── grammar_*.txt        # 三套测试文法
+├── optional_flex_bison/ # 选做：Flex + Bison 表达式计算器
+└── ...
+
+exp5/                    # 实验五：SLR 引导的语义分析框架
+├── semantic_analyzer.cpp # 语义分析器（AST + 符号表 + 类型检查 + 三地址码）
+├── Makefile
+└── ...
+
 docs/exp1/               # 实验一效果参考图（四张目标效果图）
+docs/exp3/               # 实验三实验报告
+docs/exp4/               # 实验四实验报告与截图
+docs/exp5/               # 实验五实验报告
 ```
 
 ## 🚀 快速开始
@@ -79,6 +102,41 @@ make scanner_dfa
 ./scanner_dfa dfa_lex.json test.src   # 读取 DFA 配置文件进行词法分析
 ```
 
+**实验三：LR(0) 项目集规范族生成器**
+
+```bash
+cd exp3
+make
+./lr0 grammar_expr.txt        # 标准表达式文法（存在 LR(0) 冲突）
+./lr0 grammar_lr0.txt         # 简单 LR(0) 文法（无冲突）
+```
+
+**实验四：SLR(1) 分析表生成器**
+
+```bash
+cd exp4
+make
+./slr1 grammar_expr.txt       # 标准表达式文法（SLR(1)，无冲突）
+./slr1 grammar_ext.txt        # 扩展表达式文法（含一元负号）
+make test                     # 一键测试所有文法
+```
+
+**实验四选做：Flex / Bison 体验**
+
+```bash
+cd exp4/optional_flex_bison
+make
+make test                     # 运行表达式计算器测试用例
+```
+
+**实验五：SLR 引导的语义分析框架**
+
+```bash
+cd exp5
+make
+./semantic_analyzer grammar.txt test1.txt
+```
+
 ## ✨ 实验功能特性
 
 ### 实验一：DFA 模拟器
@@ -109,6 +167,39 @@ make scanner_dfa
 | C + C++ 双实现 | ✅ | - | 同一 Makefile 支持 `scanner` 与 `scanner_c` |
 | **DFA 配置文件驱动** | ✅ | - | `scanner_dfa` 读取实验一格式的 JSON 运行，体现实验关联性 |
 
+### 实验三：LR(0) 项目集规范族生成器
+
+| 功能 | 说明 |
+|------|------|
+| 文法自动增广 | 自动插入 `S' → S`，统一编号从 0 开始 |
+| Closure 闭包计算 | 递归加载非终结符的所有产生式，直至不动点 |
+| Goto 状态转移 | 圆点后移 + 闭包，构建状态间转移边 |
+| 规范族 BFS 构造 | 从 `I₀` 出发，自动生成全部 LR(0) 项目集 |
+| 冲突检测 | 自动识别移进-归约冲突与归约-归约冲突，排除接受项目 |
+| 格式化输出 | 增广文法、项目集（含 Kernel 标记）、状态转移图 |
+
+### 实验四：SLR(1) 分析表生成器
+
+| 功能 | 说明 |
+|------|------|
+| FIRST 集计算 | 不动点迭代，支持 ε 产生式 |
+| FOLLOW 集计算 | 基于产生式的不动点迭代，自动处理尾部空串情况 |
+| ACTION 表构造 | 移进 `sX`、归约 `rX`、接受 `acc`，按 FOLLOW 约束填表 |
+| GOTO 表构造 | 非终结符转移状态自动填入 |
+| SLR(1) 冲突检测 | 检测并报告移进-归约 / 归约-归约冲突 |
+| 格式化表格输出 | ACTION（终结符 + `$`）与 GOTO（非终结符）合并对齐展示 |
+| **选做：Flex/Bison** | 表达式计算器，体验自动化词法/语法分析工具 |
+
+### 实验五：SLR 引导的语义分析框架
+
+| 功能 | 说明 |
+|------|------|
+| 抽象语法树（AST）| 在归约时构建 AST 节点，支持可视化打印 |
+| 符号表管理 | 作用域栈结构，支持变量声明、查询与重复检测 |
+| 类型检查 | 表达式类型推导、赋值类型匹配检测 |
+| 语义错误报告 | 未声明变量、重复声明、类型不匹配等 |
+| 三地址码生成 | 将 AST 翻译为四元式/三地址码序列 |
+
 ## 🖼️ 效果预览
 
 目标效果参见 `docs/exp1/` 下的四张参考图：
@@ -128,7 +219,9 @@ make scanner_dfa
 
 - [x] **实验一**：DFA 模拟与可视化（五元组解析、合法性验证、输入字符串匹配、生成指定长度内的所有接受字符串、自动渲染状态转移图）
 - [x] **实验二**：词法分析器 Scanner 实现（关键字 / 标识符 / 整数 / 浮点数 / 运算符 / 界符识别，支持交互双模式与文件批量扫描）
-- [ ] **实验三**：LR(0) / SLR(1) 语法分析（规划中：项目集规范族、分析表构造）
+- [x] **实验三**：LR(0) 项目集规范族自动生成器（Closure、Goto、BFS 规范族构造、移进-归约与归约-归约冲突检测）
+- [x] **实验四**：SLR(1) 分析表生成器（FIRST/FOLLOW 集计算、ACTION/GOTO 二维表构造、SLR(1) 冲突检测、Flex/Bison 自动工具体验）
+- [x] **实验五**：SLR 引导的语义分析框架（AST 构建、符号表管理、类型检查、三地址码生成）
 
 ## 📄 许可证
 
