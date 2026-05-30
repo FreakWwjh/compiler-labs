@@ -704,25 +704,58 @@ void printConflicts() {
     cout << "\n";
 }
 
+// 导出 SLR 分析表到文件（供实验五读取）
+bool saveSLRTable(const string& out_filename) {
+    ofstream out(out_filename);
+    if (!out.is_open()) { cerr << "Cannot write " << out_filename << endl; return false; }
+    out << "# SLR(1) TABLE\n";
+    out << "# Grammar file reference (must match exp5 grammar)\n";
+    out << "AUG_START " << productions[augmented_start_prod_id].lhs << "\n";
+    out << "PROD_COUNT " << productions.size() << "\n";
+    out << "STATES " << canonical_collection.size() << "\n";
+    out << "# ACTION table entries: state symbol action\n";
+    for (size_t i = 0; i < action_table.size(); ++i) {
+        for (const auto& kv : action_table[i]) {
+            out << "ACTION " << i << " " << kv.first << " " << kv.second << "\n";
+        }
+    }
+    out << "# GOTO table entries: state non_terminal next_state\n";
+    for (size_t i = 0; i < goto_table.size(); ++i) {
+        for (const auto& kv : goto_table[i]) {
+            out << "GOTO " << i << " " << kv.first << " " << kv.second << "\n";
+        }
+    }
+    out.close();
+    return true;
+}
+
 // ========== 主函数 ==========
 int main(int argc, char* argv[]) {
     string filename = "grammar_expr.txt";
+    string out_table;
     if (argc > 1) filename = argv[1];
+    if (argc > 3 && string(argv[2]) == "--save-table") out_table = argv[3];
 
     if (!parseGrammar(filename)) {
         return 1;
     }
 
     canonical_collection = buildCanonicalCollection(transitions);
-    
+
     computeFirst();
     computeFollow();
     buildSLRTable();
-    
+
     printReport();
     printFirstFollow();
     printSLRTable();
     printConflicts();
+
+    if (!out_table.empty()) {
+        if (saveSLRTable(out_table)) {
+            cout << "\n✅ SLR(1) 分析表已导出到: " << out_table << "\n";
+        }
+    }
 
     return 0;
 }

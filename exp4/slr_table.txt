@@ -1,0 +1,52 @@
+# SLR(1) TABLE
+# Grammar file reference (must match exp5 grammar)
+AUG_START E'
+PROD_COUNT 7
+STATES 12
+# ACTION table entries: state symbol action
+ACTION 0 ( s1
+ACTION 0 id s5
+ACTION 1 ( s1
+ACTION 1 id s5
+ACTION 2 $ acc
+ACTION 2 + s7
+ACTION 3 $ r4
+ACTION 3 ) r4
+ACTION 3 * r4
+ACTION 3 + r4
+ACTION 4 $ r2
+ACTION 4 ) r2
+ACTION 4 * s8
+ACTION 4 + r2
+ACTION 5 $ r6
+ACTION 5 ) r6
+ACTION 5 * r6
+ACTION 5 + r6
+ACTION 6 ) s9
+ACTION 6 + s7
+ACTION 7 ( s1
+ACTION 7 id s5
+ACTION 8 ( s1
+ACTION 8 id s5
+ACTION 9 $ r5
+ACTION 9 ) r5
+ACTION 9 * r5
+ACTION 9 + r5
+ACTION 10 $ r1
+ACTION 10 ) r1
+ACTION 10 * s8
+ACTION 10 + r1
+ACTION 11 $ r3
+ACTION 11 ) r3
+ACTION 11 * r3
+ACTION 11 + r3
+# GOTO table entries: state non_terminal next_state
+GOTO 0 E 2
+GOTO 0 F 3
+GOTO 0 T 4
+GOTO 1 E 6
+GOTO 1 F 3
+GOTO 1 T 4
+GOTO 7 F 3
+GOTO 7 T 10
+GOTO 8 F 11

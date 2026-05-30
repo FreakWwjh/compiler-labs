@@ -268,6 +268,39 @@ void buildSLRTable() {
     for (const auto& t : transitions) if (!isTerminal(t.symbol)) goto_table[t.from][t.symbol] = t.to;
 }
 
+// 从实验四导出的文件加载 SLR 分析表（替代现场生成）
+bool loadSLRTable(const string& filename) {
+    ifstream in(filename);
+    if (!in.is_open()) { cerr << "Cannot open SLR table file: " << filename << endl; return false; }
+    action_table.clear(); goto_table.clear();
+    string line;
+    int max_state = 0;
+    while (getline(in, line)) {
+        if (line.empty() || line[0] == '#') continue;
+        stringstream ss(line);
+        string tag; ss >> tag;
+        if (tag == "AUG_START" || tag == "PROD_COUNT" || tag == "STATES") continue;
+        if (tag == "ACTION") {
+            int state; string sym, act;
+            ss >> state >> sym >> act;
+            if ((int)action_table.size() <= state) action_table.resize(state + 1);
+            action_table[state][sym] = act;
+            max_state = max(max_state, state);
+        } else if (tag == "GOTO") {
+            int state, next; string sym;
+            ss >> state >> sym >> next;
+            if ((int)goto_table.size() <= state) goto_table.resize(state + 1);
+            goto_table[state][sym] = next;
+            max_state = max(max_state, state);
+        }
+    }
+    if (action_table.empty() || goto_table.empty()) return false;
+    // 统一大小
+    if ((int)action_table.size() <= max_state) action_table.resize(max_state + 1);
+    if ((int)goto_table.size() <= max_state) goto_table.resize(max_state + 1);
+    return true;
+}
+
 // ============================================================
 //  Part 2: 语义分析基础数据结构
 // ============================================================
@@ -289,16 +322,61 @@ vector<Token> loadTokens(const string& filename) {
         size_t e = line.find_last_not_of(" \t\r\n");
         line = line.substr(s, e - s + 1);
         if (line.empty() || line[0] == '#') continue;
-        stringstream ss(line);
+
         Token tok;
-        if (ss >> tok.type >> tok.value) {
-            // 如果行中只有1个字段，value等于type
-            if (tok.value.empty()) tok.value = tok.type;
-            tokens.push_back(tok);
-        } else if (ss >> tok.type) {
-            tok.value = tok.type;
-            tokens.push_back(tok);
+        // 尝试解析实验二输出格式: (TYPE, value) 或 (TYPE,value)
+        if (!line.empty() && line.front() == '(' && line.back() == ')') {
+            string inner = line.substr(1, line.size() - 2);
+            size_t comma = inner.find(',');
+            if (comma != string::npos) {
+                tok.type = inner.substr(0, comma);
+                tok.value = inner.substr(comma + 1);
+                // 去除空格
+                size_t ts = tok.type.find_first_not_of(" \t");
+                size_t te = tok.type.find_last_not_of(" \t");
+                if (ts != string::npos) tok.type = tok.type.substr(ts, te - ts + 1);
+                size_t vs = tok.value.find_first_not_of(" \t");
+                size_t ve = tok.value.find_last_not_of(" \t");
+                if (vs != string::npos) tok.value = tok.value.substr(vs, ve - vs + 1);
+            } else {
+                tok.type = tok.value = inner;
+            }
+        } else {
+            // 原生格式: TYPE value
+            stringstream ss(line);
+            if (ss >> tok.type >> tok.value) {
+                if (tok.value.empty()) tok.value = tok.type;
+            } else if (ss >> tok.type) {
+                tok.value = tok.type;
+            }
         }
+
+        // 实验二到实验五的 token 类型映射
+        if (tok.type == "NUM") {
+            // 根据数值判断是整数还是浮点数
+            bool is_float = false;
+            for (char c : tok.value) {
+                if (c == '.' || c == 'e' || c == 'E') { is_float = true; break; }
+            }
+            tok.type = is_float ? "FLOAT_NUM" : "INT_NUM";
+        } else if (tok.type == "FLOAT" && tok.value != "float") {
+            // 实验二把浮点数字面量也标为 FLOAT（如 (FLOAT, 3.5)）
+            tok.type = "FLOAT_NUM";
+        } else if (tok.type == "INT" && tok.value != "int") {
+            // 同理，若实验二把整数字面量标为 INT（如 (INT, 5)）
+            tok.type = "INT_NUM";
+        } else if (tok.type == "KEY_INT") {
+            tok.type = "INT";
+        } else if (tok.type == "KEY_FLOAT") {
+            tok.type = "FLOAT";
+        } else if (tok.type == "KEY_VOID") {
+            tok.type = "VOID";
+        } else if (tok.type == "KEY_PRINT") {
+            tok.type = "PRINT";
+        }
+        // 其他类型如 ID, ADD, MUL, ASG, SEMI, LPAR, RPAR 等无需映射
+
+        if (!tok.type.empty()) tokens.push_back(tok);
     }
     // 追加结束标记
     tokens.push_back({"$", "$"});
@@ -733,23 +811,48 @@ void printIntermediateCode(ASTNode* node) {
 int main(int argc, char* argv[]) {
     string grammar_file = "grammar.txt";
     string token_file = "test1.txt";
+    string table_file;
+
+    // 参数解析
     if (argc > 1) grammar_file = argv[1];
-    if (argc > 2) token_file = argv[2];
+    int tok_idx = 2;
+    if (argc > 3 && string(argv[2]) == "--load-table") {
+        table_file = argv[3];
+        tok_idx = 4;
+    }
+    if (argc > tok_idx) token_file = argv[tok_idx];
 
     cout << "==================================================\n";
     cout << "实验五：SLR(1) 引导的语义分析框架\n";
     cout << "==================================================\n";
     cout << "Grammar: " << grammar_file << "\n";
-    cout << "Tokens : " << token_file << "\n\n";
+    cout << "Tokens : " << token_file << "\n";
+    if (!table_file.empty()) cout << "SLR Table (from exp4): " << table_file << "\n";
+    cout << "\n";
 
     if (!parseGrammar(grammar_file)) return 1;
-    canonical_collection = buildCanonicalCollection(transitions);
-    computeFirst();
-    computeFollow();
-    buildSLRTable();
 
-    // 输出SLR表概要
-    cout << "SLR(1) 分析表已构建。状态数: " << canonical_collection.size() << ", 产生式数: " << productions.size() << "\n\n";
+    if (!table_file.empty()) {
+        // 从实验四导出文件加载 SLR 表
+        if (!loadSLRTable(table_file)) {
+            cerr << "Failed to load SLR table, falling back to generation.\n";
+            canonical_collection = buildCanonicalCollection(transitions);
+            computeFirst();
+            computeFollow();
+            buildSLRTable();
+            cout << "SLR(1) 分析表已现场生成。状态数: " << action_table.size() << "\n\n";
+        } else {
+            cout << "SLR(1) 分析表已从实验四输出加载。状态数: " << action_table.size() << "\n\n";
+        }
+    } else {
+        // 现场生成
+        canonical_collection = buildCanonicalCollection(transitions);
+        computeFirst();
+        computeFollow();
+        buildSLRTable();
+        cout << "SLR(1) 分析表已现场生成。状态数: " << canonical_collection.size()
+             << ", 产生式数: " << productions.size() << "\n\n";
+    }
 
     vector<Token> tokens = loadTokens(token_file);
     if (tokens.empty()) { cerr << "No tokens loaded.\n"; return 1; }

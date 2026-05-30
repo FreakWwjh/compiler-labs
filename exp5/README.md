@@ -16,9 +16,11 @@
 
 | 文件 | 说明 |
 |------|------|
-| `semantic_analyzer.cpp` | 核心实现：SLR表生成 + AST + 符号表 + 语义动作 + 驱动 |
+| `semantic_analyzer.cpp` | 核心实现：SLR表生成/加载 + AST + 符号表 + 语义动作 + 驱动 |
 | `grammar.txt` | 实验五文法（声明、赋值、print、表达式） |
-| `test1.txt` ~ `test4.txt` | Token 流测试用例 |
+| `test1.txt` ~ `test4.txt` | 原生格式 Token 流测试用例 |
+| `test_from_exp2*.txt` | **实验二 scanner 实际输出格式**的 Token 流测试用例 |
+| `slr_table.txt` | **实验四 slr1 导出的 SLR(1) 分析表** |
 | `Makefile` | 编译与一键测试 |
 
 ## 编译与运行
@@ -27,24 +29,83 @@
 # 编译
 make
 
-# 运行（默认 grammar.txt + test1.txt）
+# 运行（默认 grammar.txt + test1.txt，SLR表现场生成）
 ./semantic_analyzer
 
 # 指定文法和token文件
 ./semantic_analyzer grammar.txt test2.txt
 
+# 从实验四加载 SLR 表 + 实验二 Token 文件（真正衔接前序实验）
+./semantic_analyzer grammar.txt --load-table slr_table.txt test_from_exp2.txt
+
 # 一键运行全部测试
 make test
 ```
 
-## Token 文件格式
+## 与实验二、四的衔接
 
-每行两个字段（空格分隔）：
-```
-种属 个体值
+### 1. 接收实验四的 SLR(1) 分析表输出
+
+实验四已增加 `--save-table` 参数，可将分析表导出为文本文件：
+
+```bash
+cd ../exp4
+./slr1 grammar.txt --save-table slr_table.txt
 ```
 
-例如：
+实验五通过 `--load-table` 读取该文件，**替代现场生成**：
+
+```bash
+cd ../exp5
+./semantic_analyzer grammar.txt --load-table slr_table.txt test_from_exp2.txt
+```
+
+### 2. 接收实验二的 Token 流输出
+
+实验二（scanner）的实际输出格式为带括号的二元组：
+
+```
+(INT, int)
+(ID, x)
+(SEMI, ;)
+(NUM, 5)
+(ADD, +)
+```
+
+实验五的 `loadTokens()` **原生支持该格式**，并自动完成以下映射：
+
+| 实验二输出 | 实验五内部映射 | 说明 |
+|-----------|--------------|------|
+| `(NUM, 5)` | `INT_NUM` | 根据数值是否含小数点自动区分 `INT_NUM`/`FLOAT_NUM` |
+| `(FLOAT, 3.5)` | `FLOAT_NUM` | 当 value ≠ `"float"` 时，识别为浮点数字面量而非关键字 |
+| `(FLOAT, float)` | `FLOAT` | 保留为关键字 |
+| `(INT, int)` | `INT` | 保留为关键字 |
+| `(KEY_INT, int)` | `INT` | 兼容带前缀的关键字种属 |
+| `ID`, `ADD`, `MUL`, `ASG`, `SEMI`, `LPAR`, `RPAR`, `PRINT` | 透传 | 名称已一致 |
+
+因此，可直接将实验二的输出重定向为文件，作为实验五的输入：
+
+```bash
+cd ../exp2
+./scanner_dfa dfa_lex.json source.src > tokens.txt
+cd ../exp5
+./semantic_analyzer grammar.txt tokens.txt
+```
+
+## Token 文件格式（双模式兼容）
+
+实验五支持两种 Token 文件格式：
+
+**模式 A：实验二标准输出（推荐，真正衔接实验二）**
+```
+(INT, int)
+(ID, x)
+(SEMI, ;)
+(NUM, 5)
+(ADD, +)
+```
+
+**模式 B：原生简化格式（教学测试用）**
 ```
 INT int
 ID x
@@ -53,7 +114,7 @@ INT_NUM 5
 ADD +
 ```
 
-文件末尾自动追加 `$` 结束符，无需手动添加。
+两种模式可在同一文件中混用。文件末尾自动追加 `$` 结束符，无需手动添加。
 
 ## 输出说明
 
