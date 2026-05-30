@@ -31,7 +31,11 @@ test: $(TARGET)
 	@echo "===== Test 7: expression from exp2 scanner output + exp4 SLR table ====="
 	./$(TARGET) grammar.txt --load-table slr_table.txt test_from_exp2_expr.txt
 
+integration-test: $(TARGET)
+	@echo "===== 集成自动化测试 (exp2 → exp4 → exp5) ====="
+	@bash ./run_integration_test.sh
+
 clean:
 	rm -f $(TARGET)
 
-.PHONY: all test clean
+.PHONY: all test integration-test clean
